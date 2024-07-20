@@ -5,9 +5,8 @@ BuildRequires: scl-utils-build
 %{?scl:%global __strip %%{_scl_root}/usr/bin/strip}
 %{?scl:%global __objdump %%{_scl_root}/usr/bin/objdump}
 %{?scl:%scl_package gcc}
-%global DATE 20221121
 %global gitrev b3f5a0d53b84ed27cf00cfa2b9c3e2c78935c07d
-%global gcc_version 12.2.1
+%global gcc_version 12.4.0
 %global gcc_major 12
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
@@ -162,7 +161,7 @@ License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2
 # git --git-dir=gcc-dir.tmp/.git fetch --depth 1 origin %%{gitrev}
 # git --git-dir=gcc-dir.tmp/.git archive --prefix=%%{name}-%%{version}-%%{DATE}/ %%{gitrev} | xz -9e > %%{name}-%%{version}-%%{DATE}.tar.xz
 # rm -rf gcc-dir.tmp
-Source0: gcc-%{version}-%{DATE}.tar.xz
+Source0: https://ftp.gnu.org/gnu/gcc/gcc-%{version}/gcc-%{version}.tar.xz
 Source1: https://gcc.gnu.org/pub/gcc/infrastructure/isl-%{isl_version}.tar.bz2
 Source2: http://www.multiprecision.org/mpc/download/mpc-%{mpc_version}.tar.gz
 Source3: ftp://ftp.stack.nl/pub/users/dimitri/doxygen-%{doxygen_version}.src.tar.gz
@@ -349,17 +348,13 @@ Patch8: gcc12-no-add-needed.patch
 Patch9: gcc12-Wno-format-security.patch
 Patch10: gcc12-rh1574936.patch
 Patch11: gcc12-d-shared-libphobos.patch
-Patch12: gcc12-pr107468.patch
 Patch15: gcc12-static-libquadmath.patch
-Patch16: gcc12-FMA-chains.patch
-Patch17: gcc12-pr113960.patch
 
 Patch100: gcc12-fortran-fdec-duplicates.patch
 Patch101: gcc12-fortran-flogical-as-integer.patch
 Patch102: gcc12-fortran-fdec-override-kind.patch
 Patch103: gcc12-fortran-fdec-non-logical-if.patch
 
-Patch1000: gcc12-libstdc++-compat.patch
 Patch1001: gcc12-alt-compat-test.patch
 Patch1002: gcc12-libgfortran-compat.patch
 
@@ -383,7 +378,6 @@ Patch3011: 0015-Conditionalize-test-for-PR-libstdc-87135-on-__LIBSTD.patch
 Patch3012: 0016-Conditionalize-test-for-hashtable-bucket-sizes-on-__.patch
 Patch3013: 0017-Conditionalize-test-for-PR-libstdc-71181-on-__LIBSTD.patch
 Patch3014: gcc12-dg-ice-fixes.patch
-Patch3015: 0018-Use-CXX11-ABI.patch
 Patch3016: 0019-xfails.patch
 Patch3017: 0020-more-fixes.patch
 Patch3018: 0021-libstdc++-disable-tests.patch
@@ -709,9 +703,9 @@ so that there cannot be any synchronization problems.
 
 %prep
 %if 0%{?rhel} >= 7
-%setup -q -n gcc-%{version}-%{DATE} -a 1 -a 4 -a 5
+%setup -q -n gcc-%{version} -a 1 -a 4 -a 5
 %else
-%setup -q -n gcc-%{version}-%{DATE} -a 1 -a 2 -a 3 -a 7 -a 8
+%setup -q -n gcc-%{version} -a 1 -a 2 -a 3 -a 7 -a 8
 %endif
 %patch0 -p0 -b .hack~
 %patch2 -p0 -b .sparc-config-detection~
@@ -730,10 +724,7 @@ so that there cannot be any synchronization problems.
 %patch10 -p0 -b .rh1574936~
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
-%patch12 -p0 -b .pr107468~
 %patch15 -p0 -b .static-libquadmath~
-%patch16 -p1 -b .fma~
-%patch17 -p1 -b .pr113960~
 
 %if 0%{?rhel} >= 6
 %patch100 -p1 -b .fortran-fdec-duplicates~
@@ -752,7 +743,6 @@ rm -f gcc/testsuite/g++.dg/tsan/pthread_cond_clockwait.C
 rm -f libphobos/testsuite/libphobos.gc/forkgc2.d
 #rm -rf libphobos/testsuite/libphobos.gc
 
-%patch1000 -p0 -b .libstdc++-compat~
 %ifarch %{ix86} x86_64
 %if 0%{?rhel} < 7
 # On i?86/x86_64 there are some incompatibilities in _Decimal* as well as
@@ -791,7 +781,6 @@ cd ..
 %patch3012 -p1 -b .dts-test-12~
 %patch3013 -p1 -b .dts-test-13~
 %patch3014 -p1 -b .dts-test-14~
-%patch3015 -p1 -b .dts-test-15~
 %patch3016 -p1 -b .dts-test-16~
 %patch3017 -p1 -b .dts-test-17~
 %patch3018 -p1 -b .dts-test-18~
@@ -1282,10 +1271,10 @@ tar xf %{_usrsrc}/annobin/latest-annobin.tar.xz
 cd annobin*
 touch aclocal.m4 configure Makefile.in */configure */config.h.in */Makefile.in
 ANNOBIN_FLAGS=../../obj-%{gcc_target_platform}/%{gcc_target_platform}/libstdc++-v3/scripts/testsuite_flags
-ANNOBIN_CFLAGS1="%build_cflags -I %{_builddir}/gcc-%{version}-%{DATE}/gcc"
-ANNOBIN_CFLAGS1="$ANNOBIN_CFLAGS1 -I %{_builddir}/gcc-%{version}-%{DATE}/obj-%{gcc_target_platform}/gcc"
-ANNOBIN_CFLAGS2="-I %{_builddir}/gcc-%{version}-%{DATE}/include -I %{_builddir}/gcc-%{version}-%{DATE}/libcpp/include"
-ANNOBIN_LDFLAGS="%build_ldflags -L%{_builddir}/gcc-%{version}-%{DATE}/obj-%{gcc_target_platform}/%{gcc_target_platform}/libstdc++-v3/src/.libs"
+ANNOBIN_CFLAGS1="%build_cflags -I %{_builddir}/gcc-%{version}/gcc"
+ANNOBIN_CFLAGS1="$ANNOBIN_CFLAGS1 -I %{_builddir}/gcc-%{version}/obj-%{gcc_target_platform}/gcc"
+ANNOBIN_CFLAGS2="-I %{_builddir}/gcc-%{version}/include -I %{_builddir}/gcc-%{version}/libcpp/include"
+ANNOBIN_LDFLAGS="%build_ldflags -L%{_builddir}/gcc-%{version}/obj-%{gcc_target_platform}/%{gcc_target_platform}/libstdc++-v3/src/.libs"
 CC="`$ANNOBIN_FLAGS --build-cc`" CXX="`$ANNOBIN_FLAGS --build-cxx`" \
   CFLAGS="$ANNOBIN_CFLAGS1 $ANNOBIN_CFLAGS2 $ANNOBIN_LDFLAGS" \
   CXXFLAGS="$ANNOBIN_CFLAGS1 `$ANNOBIN_FLAGS --build-includes` $ANNOBIN_CFLAGS2 $ANNOBIN_LDFLAGS" \
@@ -1514,9 +1503,9 @@ mv %{buildroot}%{_prefix}/%{_lib}/libsanitizer.spec $FULLPATH/
 %endif
 
 mkdir -p %{buildroot}/%{_lib}
-mv -f %{buildroot}%{_prefix}/%{_lib}/libgcc_s.so.1 %{buildroot}/%{_lib}/libgcc_s-%{gcc_major}-%{DATE}.so.1
-chmod 755 %{buildroot}/%{_lib}/libgcc_s-%{gcc_major}-%{DATE}.so.1
-ln -sf libgcc_s-%{gcc_major}-%{DATE}.so.1 %{buildroot}/%{_lib}/libgcc_s.so.1
+mv -f %{buildroot}%{_prefix}/%{_lib}/libgcc_s.so.1 %{buildroot}/%{_lib}/libgcc_s-%{gcc_major}.so.1
+chmod 755 %{buildroot}/%{_lib}/libgcc_s-%{gcc_major}.so.1
+ln -sf libgcc_s-%{gcc_major}.so.1 %{buildroot}/%{_lib}/libgcc_s.so.1
 ln -sf /%{_lib}/libgcc_s.so.1 $FULLPATH/libgcc_s.so
 %ifarch sparcv9 ppc
 ln -sf /lib64/libgcc_s.so.1 $FULLPATH/64/libgcc_s.so
@@ -2114,7 +2103,7 @@ ln -s ../../libexec/gcc/%{gcc_target_platform}/%{gcc_major}/liblto_plugin.so \
 %if %{build_annobin_plugin}
 mkdir -p $FULLPATH/plugin
 rm -f $FULLPATH/plugin/gts-gcc-annobin*
-cp -a %{_builddir}/gcc-%{version}-%{DATE}/annobin-plugin/annobin*/gcc-plugin/.libs/annobin.so.0.0.0 \
+cp -a %{_builddir}/gcc-%{version}/annobin-plugin/annobin*/gcc-plugin/.libs/annobin.so.0.0.0 \
   $FULLPATH/plugin/gts-gcc-annobin.so.0.0.0
 pushd $FULLPATH/plugin/
 ln -sf gts-gcc-annobin.so.0.0.0 gts-gcc-annobin.so.0
