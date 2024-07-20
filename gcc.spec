@@ -355,7 +355,6 @@ Patch101: gcc12-fortran-flogical-as-integer.patch
 Patch102: gcc12-fortran-fdec-override-kind.patch
 Patch103: gcc12-fortran-fdec-non-logical-if.patch
 
-Patch1000: gcc12-libstdc++-compat.patch
 Patch1001: gcc12-alt-compat-test.patch
 Patch1002: gcc12-libgfortran-compat.patch
 
@@ -744,7 +743,6 @@ rm -f gcc/testsuite/g++.dg/tsan/pthread_cond_clockwait.C
 rm -f libphobos/testsuite/libphobos.gc/forkgc2.d
 #rm -rf libphobos/testsuite/libphobos.gc
 
-%patch1000 -p0 -b .libstdc++-compat~
 %ifarch %{ix86} x86_64
 %if 0%{?rhel} < 7
 # On i?86/x86_64 there are some incompatibilities in _Decimal* as well as
